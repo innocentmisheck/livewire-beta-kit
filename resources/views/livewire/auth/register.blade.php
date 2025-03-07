@@ -44,7 +44,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <form wire:submit="register" class="flex flex-col gap-6">
         <!-- Name -->
         <flux:input
-            wire:model="name"
+            wire:model.live="name"
             :label="__('Name')"
             type="text"
             required
@@ -55,7 +55,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         <!-- Email Address -->
         <flux:input
-            wire:model="email"
+            wire:model.live="email"
             :label="__('Email address')"
             type="email"
             required
@@ -65,7 +65,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         <!-- Password -->
         <flux:input
-            wire:model="password"
+            wire:model.live="password"
             :label="__('Password')"
             type="password"
             required
@@ -75,7 +75,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         <!-- Confirm Password -->
         <flux:input
-            wire:model="password_confirmation"
+            wire:model.live="password_confirmation"
             :label="__('Confirm password')"
             type="password"
             required

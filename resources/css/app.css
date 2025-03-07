@@ -61,6 +61,34 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+a:hover{
+    cursor: pointer;
+}
+
+a{
+    cursor: pointer;
+}
+
+button{
+    cursor: pointer;
+}
+
+select option {
+    padding: 8px;
+}
+
+select:focus {
+    outline: none;
+}
+
+
+/* Tailwind classes explanation:
+   flex: display: flex
+   flex-col: flex-direction: column
+   min-h-screen: min-height: 100vh
+   flex-grow: flex-grow: 1
+*/
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

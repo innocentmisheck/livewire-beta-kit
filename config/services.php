@@ -14,6 +14,13 @@ return [
     |
     */
 
+
+    'livecoinwatch' => [
+        'url' => env('LIVECOINWATCH_API_URL', 'https://api.livecoinwatch.com'),
+        'key' => env('LIVECOINWATCH_API_KEY', ''),
+    ],
+
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
