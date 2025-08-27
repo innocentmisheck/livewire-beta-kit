@@ -40,7 +40,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('home', absolute: false), navigate: true);
+        $this->redirectIntended(default: route('app'));
     }
 
     /**
@@ -104,7 +104,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
             @if (Route::has('password.request'))
                 <flux:link class="absolute right-0 top-0 text-sm" :href="route('password.request')" wire:navigate>
-                    {{ __('Forgot your password?') }}
+                    {{ __('Forgot password?') }}
                 </flux:link>
             @endif
         </div>
@@ -120,7 +120,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
     @if (Route::has('register'))
         <div class="space-x-1 text-center text-sm text-zinc-600 dark:text-zinc-400">
             {{ __('Don\'t have an account?') }}
-            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
+            <br>
+            <flux:link :href="route('register')">{{ __('Sign up') }}</flux:link>
         </div>
     @endif
 </div>

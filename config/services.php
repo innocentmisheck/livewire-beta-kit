@@ -20,6 +20,16 @@ return [
         'key' => env('LIVECOINWATCH_API_KEY', ''),
     ],
 
+    
+    'exchangerate' => [
+        'url' => env('EXCHANGERATE_API_URL', 'https://v6.exchangerate-api.com/v6/'),
+        'key' => env('EXCHANGERATE_API_KEY'),
+    ],
+
+    'restcountries' => [
+        'url' => env('RESTCOUNTRIES_API_URL', 'https://restcountries.com/v3.1/all'),
+    ],
+
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

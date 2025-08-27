@@ -23,7 +23,7 @@ class MarketTrends extends Component
     {
         try {
             // Fetch top 50 coins (adjust limit as needed)
-            $data = $this->liveCoinWatchService->getCurrenciesList(50);
+            $data = $this->liveCoinWatchService->getCurrenciesList();
 
             if (!empty($data)) {
                 $this->cryptos = [];

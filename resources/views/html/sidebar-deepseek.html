@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+    <head>
+        @include('partials.head')
+    </head>
+    <body class="min-h-screen bg-white dark:bg-zinc-900">
+        
+        <flux:sidebar sticky stashable class="border-r border-zinc-200 bg-gradient-to-b from-zinc-900 to-zinc-800 dark:border-zinc-700">
+            <flux:sidebar.toggle class="lg:hidden md:hidden" icon="x-mark" />
+
+            <!-- Logo Section with Crypto Theme -->
+            <a href="/" class="mr-5 flex items-center space-x-2 p-4">
+                <x-app-logo class="text-blue-400" />
+                <span class="mb-0.5 mt-2 truncate text-xl font-bold text-blue-400">
+                    Crypto<span class="text-amber-400">X</span>
+                    <sub class="text-xs text-gray-400">Exchange</sub>
+                </span>
+            </a>
+
+            <!-- Main Navigation -->
+            <flux:navlist variant="ghost" class="space-y-1 px-2">
+                <!-- Market Section -->
+                <flux:navlist.group heading="Market Data" class="grid" heading-class="text-xs uppercase tracking-wider text-gray-400 mb-2 px-2">
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-blue-400 rounded-lg" 
+                                      icon="presentation-chart-line" 
+                                      icon-class="text-blue-400"
+                                      href="{{ route('app') }}">
+                        Market Overview
+                    </flux:navlist.item>
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-blue-400 rounded-lg"
+                                      icon="chart-bar"
+                                      icon-class="text-blue-400"
+                                      href="#">
+                        Advanced Charts
+                    </flux:navlist.item>
+                </flux:navlist.group>
+            
+                <!-- Trading Section -->
+                <flux:navlist.group heading="Trading" class="grid mt-2" heading-class="text-xs uppercase tracking-wider text-gray-400 mb-2 px-2">
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-green-500 rounded-lg"
+                                      icon="arrow-trending-up"
+                                      icon-class="text-green-500"
+                                      href="{{ route('profile.wallet.create-wallet') }}">
+                        Buy Crypto
+                    </flux:navlist.item>
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-red-500 rounded-lg"
+                                      icon="arrow-trending-down"
+                                      icon-class="text-red-500"
+                                      href="/deposit">
+                        Sell Crypto
+                    </flux:navlist.item>
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-purple-500 rounded-lg"
+                                      icon="arrows-right-left"
+                                      icon-class="text-purple-500"
+                                      href="#">
+                        Swap Assets
+                    </flux:navlist.item>
+                </flux:navlist.group>
+                
+                <!-- Wallet Section -->
+                <flux:navlist.group heading="Assets" class="grid mt-2" heading-class="text-xs uppercase tracking-wider text-gray-400 mb-2 px-2">
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-amber-400 rounded-lg"
+                                      icon="wallet"
+                                      icon-class="text-amber-400"
+                                      href="{{ route('profile.config') }}">
+                        My Wallets
+                    </flux:navlist.item>
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-blue-300 rounded-lg"
+                                      icon="shield-check"
+                                      icon-class="text-blue-300"
+                                      href="#">
+                        Security
+                    </flux:navlist.item>
+                </flux:navlist.group>
+            
+                <!-- Notifications -->
+                <flux:navlist.item class="mt-2 hover:bg-zinc-800 hover:text-purple-400 rounded-lg"
+                                  icon="bell"
+                                  icon-class="text-purple-400"
+                                  href="#">
+                    <div class="flex items-center justify-between w-full">
+                        <span>{{ __('Notifications') }}</span>
+                        <span class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">3</span>
+                    </div>
+                </flux:navlist.item>
+            </flux:navlist>
+            
+            <flux:spacer />
+
+            <!-- Bottom Links -->
+            <div class="px-2 pb-4">
+                <!-- Portfolio Summary -->
+                <div class="mb-4 rounded-lg bg-zinc-800 p-3">
+                    <div class="text-xs text-gray-400">Portfolio Value</div>
+                    <div class="text-xl font-bold text-white">$24,382.45</div>
+                    <div class="flex items-center text-xs">
+                        <span class="text-green-500">+2.4%</span>
+                        <span class="text-gray-400 ml-1">24h</span>
+                    </div>
+                </div>
+
+                <!-- Support Links -->
+                <flux:navlist variant="ghost" class="space-y-1">
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-blue-400 rounded-lg"
+                                      icon="lifebuoy"
+                                      icon-class="text-blue-400"
+                                      href="#">
+                        {{ __('Support Center') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item class="hover:bg-zinc-800 hover:text-green-400 rounded-lg"
+                                      icon="book-open"
+                                      icon-class="text-green-400"
+                                      href="#">
+                        {{ __('Learning Academy') }}
+                    </flux:navlist.item>
+                </flux:navlist>
+            </div>
+
+            <!-- User Menu -->
+            <div class="border-t border-zinc-700 p-2">
+                <flux:dropdown position="top" align="start">
+                    <flux:profile
+                        :name="auth()->user()->name"
+                        :initials="auth()->user()->initials()"
+                        icon-trailing="chevron-down"
+                        class="hover:bg-zinc-800 px-3 py-2 rounded-lg"
+                        icon-trailing-class="text-gray-400"
+                    />
+
+                    <flux:menu class="w-[240px] bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg">
+                        <flux:menu.radio.group>
+                            <div class="p-2 text-sm font-normal">
+                                <div class="flex items-center gap-3 px-1 py-1.5 text-left">
+                                    <span class="relative flex h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gradient-to-r from-blue-500 to-purple-600">
+                                        <span class="flex h-full w-full items-center justify-center text-white">
+                                            {{ auth()->user()->initials() }}
+                                        </span>
+                                    </span>
+
+                                    <div class="grid flex-1 text-left leading-tight">
+                                        <span class="truncate font-semibold text-white">{{ auth()->user()->name }}</span>
+                                        <span class="truncate text-xs text-gray-400">{{ auth()->user()->email }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </flux:menu.radio.group>
+
+                        <flux:menu.separator class="border-zinc-700" />
+
+                        <flux:menu.radio.group>
+                            <flux:menu.item href="/settings/profile" icon="user" icon-class="text-blue-400" class="hover:bg-zinc-700">
+                                {{ __('Profile') }}
+                            </flux:menu.item>
+                            <flux:menu.item href="/settings/security" icon="lock-closed" icon-class="text-green-400" class="hover:bg-zinc-700">
+                                {{ __('Security') }}
+                            </flux:menu.item>
+                            <flux:menu.item href="/settings/api" icon="key" icon-class="text-purple-400" class="hover:bg-zinc-700">
+                                {{ __('API Keys') }}
+                            </flux:menu.item>
+                        </flux:menu.radio.group>
+
+                        <flux:menu.separator class="border-zinc-700" />
+                        
+                        <div class="px-3 py-2">
+                            <div class="text-xs text-gray-400 mb-1">Appearance</div>
+                            <flux:radio.group x-data variant="segmented" x-model="$flux.appearance" class="bg-zinc-700 p-0.5 rounded-lg">
+                                <flux:radio value="light" icon="sun" class="hover:bg-zinc-600"></flux:radio>
+                                <flux:radio value="dark" icon="moon" class="hover:bg-zinc-600"></flux:radio>
+                                <flux:radio value="system" icon="computer-desktop" class="hover:bg-zinc-600"></flux:radio>
+                            </flux:radio.group>
+                        </div>
+                        
+                        <flux:menu.separator class="border-zinc-700" />
+
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                            @csrf
+                            <flux:menu.item as="button" type="submit" 
+                                            icon="arrow-right-on-rectangle" 
+                                            icon-class="text-red-400"
+                                            class="text-red-400 hover:bg-zinc-700 hover:text-red-300">
+                                {{ __('Log Out') }}
+                            </flux:menu.item>
+                        </form>
+                    </flux:menu>
+                </flux:dropdown>
+            </div>
+        </flux:sidebar>
+
+        {{ $slot }}
+
+        @fluxScripts
+
+    </body>
+</html>

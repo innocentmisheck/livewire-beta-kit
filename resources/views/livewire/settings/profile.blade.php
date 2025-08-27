@@ -70,6 +70,8 @@ new class extends Component {
 }; ?>
 
 <section class="w-full">
+    <livewire:greeting />
+
     @include('partials.settings-heading')
 
     <x-settings.layout title="Coins - App" :heading="__('Profile')" :subheading="__('Update your name and email address')">

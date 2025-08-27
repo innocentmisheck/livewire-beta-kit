@@ -3,7 +3,9 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Illuminate\Support\Facades\Http;
+use App\Services\LiveCoinWatchService;
+use App\Models\Wallet;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -11,10 +13,10 @@ use Carbon\Carbon;
 class LiveTradingChart extends Component
 {
     // Configuration constants
-    private const MAX_CRYPTOCURRENCIES = 5;
-    private const CACHE_TTL_SYMBOLS = 24 * 60; // 24 hours
-    private const CACHE_TTL_PRICES = 5; // 5 minutes
-    private const HISTORICAL_DATA_POINTS = 60;
+    private const MAX_CRYPTOCURRENCIES = 1; // Max cryptos to display
+    private const CACHE_TTL_PRICES = 1; // 1 minutes
+    private const CACHE_TTL_HISTORICAL_DATA = 60; // 24 hour
+    private const HISTORICAL_DATA_POINTS = 60; // Data points for the chart
 
     public $chartData = [
         'labels' => [],
@@ -23,9 +25,18 @@ class LiveTradingChart extends Component
 
     public $cryptoSymbols = [];
     public $errorMessage = null;
+    public $isWalletBased = true; // Toggle between wallet-based and top cryptos
 
-    public function mount()
+    protected $liveCoinWatchService;
+
+    public function boot(LiveCoinWatchService $liveCoinWatchService)
     {
+        $this->liveCoinWatchService = $liveCoinWatchService;
+    }
+
+    public function mount(bool $isWalletBased = true)
+    {
+        $this->isWalletBased = $isWalletBased;
         try {
             $this->initializeTradingData();
         } catch (\Exception $e) {
@@ -35,75 +46,54 @@ class LiveTradingChart extends Component
 
     protected function initializeTradingData()
     {
-        // Fetch symbols with more robust error handling
-        $this->cryptoSymbols = $this->safelyFetchCryptoSymbols();
-
-        // Fetch trading data
+        $this->cryptoSymbols = $this->isWalletBased ? $this->fetchUserWalletSymbols() : $this->fetchTopCryptoSymbols();
         $this->fetchTradingData();
     }
 
-    protected function safelyFetchCryptoSymbols(): array
+    protected function fetchUserWalletSymbols(): array
     {
-        // Implement a multi-layer fallback strategy
-        $cachedSymbols = Cache::get('top_crypto_symbols');
+        if (Auth::check()) {
+            $userId = Auth::id();
+            return Wallet::where('user_id', $userId)
+                ->pluck('currency')
+                ->unique()
+                ->take(self::MAX_CRYPTOCURRENCIES)
+                ->toArray();
+        }
+        return []; // Default to BTC if no wallet data
+    }
+
+    protected function fetchTopCryptoSymbols(): array
+    {
+        $cacheKey = 'top_crypto_symbols';
+        $cachedSymbols = Cache::get($cacheKey);
 
         if ($cachedSymbols) {
-            return $cachedSymbols;
+            return [];
         }
-
-        // Predefined fallback symbols
-        $fallbackSymbols = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOT', 'DOGE', 'AVAX', 'LINK'];
 
         try {
-            $response = Http::withHeaders([
-                'x-api-key' => env('LIVECOINWATCH_API_KEY'),
-                'content-type' => 'application/json'
-            ])->timeout(10) // Set a reasonable timeout
-            ->retry(3, 100) // Retry mechanism
-            ->post(env('LIVECOINWATCH_API_URL') . '/coins/list', [
-                'currency' => 'USD',
-                'sort' => 'rank',
-                'order' => 'ascending',
-                'limit' => self::MAX_CRYPTOCURRENCIES
-            ]);
+            $symbols = $this->liveCoinWatchService->getCurrenciesList();
+            $symbols = collect($symbols)
+                ->pluck('code')
+                ->take(self::MAX_CRYPTOCURRENCIES)
+                ->toArray();
 
-            if ($response->successful()) {
-                $symbols = collect($response->json())
-                    ->pluck('code')
-                    ->take(self::MAX_CRYPTOCURRENCIES)
-                    ->toArray();
-
-                // Cache successful result
-                Cache::put('top_crypto_symbols', $symbols, now()->addMinutes(self::CACHE_TTL_SYMBOLS));
-
-                return $symbols;
-            }
+            Cache::put($cacheKey, $symbols, now()->addMinutes(self::CACHE_TTL_HISTORICAL_DATA));
+            return [];
         } catch (\Exception $e) {
-            Log::warning('Crypto symbol fetch failed: ' . $e->getMessage());
+            Log::warning('Failed to fetch top crypto symbols: ' . $e->getMessage());
         }
-
-        // Fallback to predefined symbols if API fails
-        return $fallbackSymbols;
     }
 
     public function fetchTradingData()
     {
         try {
-            // Prepare time labels
             $this->prepareTimeLabels();
-
-            // Fetch current prices with error handling
             $currentPrices = $this->fetchCurrentPrices();
-
-            // Manage historical data
             $historicalData = $this->manageHistoricalData($currentPrices);
-
-            // Prepare chart datasets
             $this->prepareChartDatasets($historicalData, $currentPrices);
-
-            // Dispatch event
             $this->dispatch('data-updated', $this->chartData);
-
         } catch (\Exception $e) {
             $this->handleCriticalError($e);
         }
@@ -119,47 +109,33 @@ class LiveTradingChart extends Component
 
     protected function fetchCurrentPrices(): array
     {
-        // Check cache first
-        $cachedPrices = Cache::get('crypto_current_prices');
+        $cacheKey = $this->isWalletBased ? 'wallet_crypto_current_prices_' . implode('_', $this->cryptoSymbols) : 'all_crypto_current_prices';
+        $cachedPrices = Cache::get($cacheKey);
+
         if ($cachedPrices) {
             return $cachedPrices;
         }
 
         try {
-            $response = Http::withHeaders([
-                'x-api-key' => env('LIVECOINWATCH_API_KEY'),
-                'content-type' => 'application/json'
-            ])->timeout(5)
-                ->retry(2, 50)
-                ->post(env('LIVECOINWATCH_API_URL') . '/coins/list', [
-                    'currency' => 'USD',
-                    'codes' => $this->cryptoSymbols,
-                    'sort' => 'rank'
-                ]);
-
-            if ($response->successful()) {
-                $prices = collect($response->json())
-                    ->mapWithKeys(fn($coin) => [
-                        $coin['code'] => ['rate' => $coin['rate'] ?? 0]
-                    ])
-                    ->toArray();
-
-                Cache::put('crypto_current_prices', $prices, now()->addMinutes(self::CACHE_TTL_PRICES));
-                return $prices;
+            $coinDetails = $this->liveCoinWatchService->getCoinDetails($this->cryptoSymbols);
+            $prices = [];
+            foreach ($this->cryptoSymbols as $symbol) {
+                $prices[$symbol] = [
+                    'rate' => $coinDetails[$symbol]['price'] ?? 0
+                ];
             }
+            Cache::put($cacheKey, $prices, now()->addMinutes(self::CACHE_TTL_PRICES));
+            return $prices;
         } catch (\Exception $e) {
             Log::warning('Price fetch failed: ' . $e->getMessage());
+            return array_fill_keys($this->cryptoSymbols, ['rate' => 0]);
         }
-
-        // Fallback to zero prices
-        return array_fill_keys($this->cryptoSymbols, ['rate' => 0]);
     }
 
     protected function manageHistoricalData(array $currentPrices): array
     {
-        $historicalData = Cache::get('trading_historical_data',
-            array_fill_keys($this->cryptoSymbols, array_fill(0, self::HISTORICAL_DATA_POINTS, 0))
-        );
+        $cacheKey = $this->isWalletBased ? 'wallet_trading_historical_data_' . implode('_', $this->cryptoSymbols) : 'all_trading_historical_data';
+        $historicalData = Cache::get($cacheKey, array_fill_keys($this->cryptoSymbols, array_fill(0, self::HISTORICAL_DATA_POINTS, 0)));
 
         foreach ($this->cryptoSymbols as $symbol) {
             $prices = $historicalData[$symbol] ?? array_fill(0, self::HISTORICAL_DATA_POINTS, 0);
@@ -169,7 +145,7 @@ class LiveTradingChart extends Component
             $historicalData[$symbol] = $prices;
         }
 
-        Cache::put('trading_historical_data', $historicalData, now()->addHour());
+        Cache::put($cacheKey, $historicalData, now()->addHour());
         return $historicalData;
     }
 
@@ -178,9 +154,11 @@ class LiveTradingChart extends Component
         $this->chartData['datasets'] = [];
 
         $colors = [
-            ['border' => '#FFCE56', 'background' => 'rgba(255, 206, 86, 0.2)'],
-            ['border' => '#36A2EB', 'background' => 'rgba(54, 162, 235, 0.2)'],
-            // ... add more colors as needed
+            ['border' => '#FFCE56', 'background' => 'rgba(255, 206, 86, 0.2)'], // BTC
+            ['border' => '#36A2EB', 'background' => 'rgba(54, 162, 235, 0.2)'], // ETH
+            ['border' => '#FF6384', 'background' => 'rgba(255, 99, 132, 0.2)'], // LTC
+            ['border' => '#4BC0C0', 'background' => 'rgba(75, 192, 192, 0.2)'], // XRP
+            ['border' => '#9966FF', 'background' => 'rgba(153, 102, 255, 0.2)'] // ADA
         ];
 
         foreach ($this->cryptoSymbols as $index => $symbol) {
@@ -195,13 +173,8 @@ class LiveTradingChart extends Component
 
     protected function handleCriticalError(\Exception $e)
     {
-        // Log the full error
         Log::error('Critical error in trading chart: ' . $e->getMessage());
-
-        // Set a user-friendly error message
         $this->errorMessage = 'Unable to load trading data. Please try again later.';
-
-        // Fallback to minimal data
         $this->chartData = [
             'labels' => [now()->format('H:i')],
             'datasets' => array_map(

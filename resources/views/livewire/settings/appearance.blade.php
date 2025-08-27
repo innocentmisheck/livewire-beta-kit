@@ -7,6 +7,7 @@ new class extends Component {
 }; ?>
 
 <div class="flex flex-col items-start">
+    <livewire:greeting />
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('Appearance')" :subheading=" __('Update the appearance settings for your account')">

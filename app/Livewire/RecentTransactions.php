@@ -3,7 +3,8 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Illuminate\Support\Facades\Http;
+use App\Models\Transaction;
+use Illuminate\Support\Facades\Auth;
 
 class RecentTransactions extends Component
 {
@@ -16,32 +17,23 @@ class RecentTransactions extends Component
 
     public function fetchTransactions()
     {
-        // Simulated data (replace with database query, e.g., auth()->user()->transactions()->latest()->take(3)->get())
-        $this->transactions = [
-            [
-                'type' => 'sent',
-                'amount' => 0.5,
-                'currency' => 'BTC',
-                'to' => 'Alice',
-                'timestamp' => now()->subMinutes(10)->toDateTimeString(),
-                'status' => 'completed',
-            ],
-            [
-                'type' => 'received',
-                'amount' => 1.2,
-                'currency' => 'ETH',
-                'from' => 'Bob',
-                'timestamp' => now()->subHours(1)->toDateTimeString(),
-                'status' => 'completed',
-            ],
-            [
-                'type' => 'bought',
-                'amount' => 0.3,
-                'currency' => 'LTC',
-                'timestamp' => now()->subHours(2)->toDateTimeString(),
-                'status' => 'pending',
-            ],
-        ];
+        // Fetch the latest 5 transactions for the authenticated user
+        $this->transactions = Transaction::where('user_id', Auth::id())
+            ->latest('created_at') // Order by creation date, newest first
+            ->take(5) // Limit to 5 transactions
+            ->get()
+            ->map(function ($transaction) {
+                return [
+                    'type' => $transaction->type,
+                    'amount' => $transaction->amount,
+                    'currency' => $transaction->currency,
+                    'to' => $transaction->type === 'sent' ? ($transaction->to ?? 'Unknown') : null,
+                    'from' => $transaction->type === 'received' ? ($transaction->from ?? 'Unknown') : null,
+                    'timestamp' => $transaction->created_at->toDateTimeString(),
+                    'status' => $transaction->status,
+                ];
+            })
+            ->toArray();
     }
 
     public function render()

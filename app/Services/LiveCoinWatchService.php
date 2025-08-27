@@ -38,7 +38,7 @@ class LiveCoinWatchService
                     'sort' => 'rank',
                     'order' => 'ascending',
                     'offset' => 0,
-                    'limit' => 100,
+                    'limit' => 500,
                     'meta' => true,
                 ]);
 
@@ -68,7 +68,7 @@ class LiveCoinWatchService
                     'sort' => 'rank',
                     'order' => 'ascending',
                     'offset' => 0,
-                    'limit' => 100,
+                    'limit' => 500,
                     'code' => $codes,
                     'meta' => true
                 ]);

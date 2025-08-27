@@ -1,12 +1,7 @@
-<!-- Wrap your entire page content in a flex container -->
-<div class="flex flex-col min-h-screen">
-    <!-- Main content area (if any) -->
-    <main class="flex-grow">
-        <!-- Your page content goes here -->
-    </main>
+
 
     <!-- Footer -->
-    <footer class="bg-glass backdrop-blur-md shadow-md p-4 rounded-xl flex items-center justify-between w-full">
+    <footer class="bg-glass backdrop-blur-md shadow-md mt-15 p-4 rounded-xl flex items-center justify-between w-full fixed bottom-0 left-0">
         <div class="flex items-center space-x-3">
             <!-- Light/Dark/Auto Mode Toggle -->
             <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
@@ -23,4 +18,3 @@
             <x-app-logo class="ml-4" />
         </div>
     </footer>
-</div>

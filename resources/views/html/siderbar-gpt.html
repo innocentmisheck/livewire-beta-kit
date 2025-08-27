@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<head>
+    @include('partials.head')
+</head>
+<body class="min-h-screen bg-white dark:bg-gray-900">
+    
+    <flux:sidebar sticky stashable class="border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 w-72">
+        <!-- Sidebar Toggle -->
+        <flux:sidebar.toggle class="lg:hidden md:hidden" icon="x-mark" />
+
+        <!-- Logo & Branding -->
+        <a href="/" class="flex items-center space-x-3 p-4">
+            <x-app-logo class="h-8 w-8" />
+            <span class="text-lg font-bold text-gray-900 dark:text-white">COINS <sup class="text-xs">™</suP></span>
+        </a>
+
+        <!-- User Profile & Balance -->
+        <div class="p-4 text-center border-b dark:border-gray-700">
+            <div class="flex flex-col items-center">
+                <span class="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-blue-500 text-white text-lg font-semibold">
+                    {{ auth()->user()->initials() }}
+                </span>
+                <span class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">{{ auth()->user()->name }}</span>
+                <span class="text-xs text-gray-500">{{ auth()->user()->email }}</span>
+                <span class="mt-2 text-sm text-green-500 font-semibold">
+                    $12,350.75 <span class="text-xs text-gray-400">(USD)</span>
+                </span>
+                <span class="text-xs text-gray-400">Pro Account</span>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <flux:navlist variant="outline">
+            <!-- Home -->
+            <flux:navlist.group heading="Dashboard" class="grid">
+                <flux:navlist.item icon="presentation-chart-line" href="{{ route('app') }}">
+                    Market Overview
+                </flux:navlist.item>
+                <flux:navlist.item icon="banknotes" href="{{ route('profile.wallet.create-wallet') }}">
+                    My Portfolio
+                </flux:navlist.item>
+            </flux:navlist.group>
+        
+            <!-- Wallet & Transactions -->
+            <flux:navlist.group heading="Wallet & Transactions" class="grid mt-5">
+                <flux:navlist.item icon="credit-card" href="{{ route('profile.config') }}">
+                    Wallet
+                </flux:navlist.item>
+                <flux:navlist.item icon="arrow-trending-up" href="/deposit">
+                    Deposit Funds
+                </flux:navlist.item>
+                <flux:navlist.item icon="arrow-trending-down" href="#">
+                    Withdraw Funds
+                </flux:navlist.item>
+            </flux:navlist.group>
+            
+            <!-- Trading & Exchanges -->
+            <flux:navlist.group expandable collapse heading="Trading" class="grid">
+                <flux:navlist.item icon="chart-bar" href="#">
+                    Live Charts
+                </flux:navlist.item>
+                <flux:navlist.item icon="arrows-right-left" href="#">
+                    Swap Coins
+                </flux:navlist.item>
+                <flux:navlist.item icon="arrow-path" href="#">
+                    Exchange
+                </flux:navlist.item>
+                <flux:navlist.item icon="cube-transparent" href="#">
+                    Staking & Rewards
+                </flux:navlist.item>
+            </flux:navlist.group>
+
+            <!-- Notifications & Settings -->
+            <flux:navlist.item class="mt-2" icon="bell" href="#">
+                {{ __('Notifications') }}
+            </flux:navlist.item>
+        </flux:navlist>
+
+        <flux:spacer />
+
+        <!-- Support & Community -->
+        <flux:navlist variant="outline">
+            <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
+                {{ __('Support') }}
+            </flux:navlist.item>
+            <flux:navlist.item icon="users" href="/">
+                {{ __('Community') }}
+            </flux:navlist.item>
+        </flux:navlist>
+
+        <!-- User Menu -->
+        <flux:dropdown position="bottom" align="start">
+            <flux:profile
+                :name="auth()->user()->name"
+                :initials="auth()->user()->initials()"
+                icon-trailing="chevrons-up-down"
+            />
+
+            <flux:menu class="w-[220px]">
+                <flux:menu.radio.group>
+                    <div class="p-0 text-sm font-normal">
+                        <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                            <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                <span class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                    {{ auth()->user()->initials() }}
+                                </span>
+                            </span>
+
+                            <div class="grid flex-1 text-left text-sm leading-tight">
+                                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </flux:menu.radio.group>
+
+                <flux:menu.separator />
+
+                <flux:menu.radio.group>
+                    <flux:menu.item href="/settings/profile" icon="cog">{{ __('Settings') }}</flux:menu.item>
+                </flux:menu.radio.group>
+
+                <flux:menu.separator />
+                <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
+                    <flux:radio value="light" icon="sun"></flux:radio>
+                    <flux:radio value="dark" icon="moon"></flux:radio>
+                    <flux:radio value="system" icon="computer-desktop"></flux:radio>
+                </flux:radio.group>
+                <flux:menu.separator />
+
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                        {{ __('Log Out') }}
+                    </flux:menu.item>
+                </form>
+            </flux:menu>
+        </flux:dropdown>
+    </flux:sidebar>
+
+    {{ $slot }}
+
+    @fluxScripts
+
+</body>
+</html>

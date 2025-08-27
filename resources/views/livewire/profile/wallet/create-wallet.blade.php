@@ -87,17 +87,28 @@ new class extends Component {
         $this->hasWallet = true;
 
         // Redirect to the dashboard
-        $this->redirect('/');
+        $this->redirect('/app');
     }
 };
 ?>
     <!-- Blade Template -->
-<section class="w-full">
+<section class="w-full" x-data="{ isLoading: true }" x-init="setTimeout(() => isLoading = false, 0)">
     <livewire:greeting />
     @include('partials.wallet-heading')
     @include('partials.notification')
 
-    <div class="container mx-auto">
+    <!-- Loading Spinner (Moved outside the section to cover the whole screen) -->
+    <div 
+    x-data="{ isLoading: true }" 
+    x-init="setTimeout(() => isLoading = false, 0)"
+    x-show="isLoading" 
+    class="fixed inset-0 flex justify-center items-center bg-white bg-opacity-0 z-50 dark:bg-neutral-900 dark:bg-opacity-90" 
+    x-transition.opacity
+    >
+    <div class="w-6 h-6 border-3 border-t-transparent top-0 border-green-500 dark:border-green-400 rounded-full animate-spin transition-opacity duration-1000"></div>
+    </div>
+
+    <div class="container mx-auto ">
         <h2 class="text-2xl font-bold mb-4">{{ __('Create Wallet') }}</h2>
 
         @if (session()->has('notification'))
@@ -118,7 +129,7 @@ new class extends Component {
         @if(!$hasWallet)
             <form wire:submit.prevent="createWallet" class="space-y-1">
                 <!-- Custom Currency Selector with Alpine.js - Improved Version -->
-                <label class="block font-medium text-gray-700">{{ __('Select Currency') }}</label>
+                <label class="block font-medium text-gray-700 dark:text-white">{{ __('Select Currency') }}</label>
                 <div
                     x-data="{
                         open: false,
@@ -139,13 +150,13 @@ new class extends Component {
                             this.search = '';
                         }
                     }"
-                    class="relative w-full border border-gray-300 rounded-md shadow-md"
+                    class="relative w-full border border-gray-300 rounded-md shadow-md dark:text-black"
                     @keydown.escape="open = false"
                 >
                     <!-- Dropdown Trigger -->
                     <div
                         @click="open = !open"
-                        class="w-full p-3 border border-gray-300 rounded-md cursor-pointer flex items-center justify-between"
+                        class="w-full p-3 border border-gray-300 rounded-md cursor-pointer flex items-center justify-between dark:text-white"
                         :class="{'ring-2 ring-green-500 border-transparent': open}"
                     >
                         <span class="flex items-center">
@@ -237,14 +248,26 @@ new class extends Component {
                     </template>
                 </div>
 
-                <!-- Submit Button -->
-                <button
-                    type="submit"
-                    class="inline-block bg-green-500 text-white mt-5 px-4 py-2 rounded-lg shadow-md hover:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    :disabled="!$wire.selectedCurrency"
-                >
-                    {{ __('Create Wallet') }}
-                </button>
+             <!-- Submit Button with Loading Spinner -->
+             <button
+             type="submit"
+             x-data="{ loading: false }"
+             @click="loading = true; $nextTick(() => { $wire.selectedCurrency && loading = false; })"
+             class="inline-flex items-center justify-center bg-green-500 text-white mt-5 px-4 py-2 rounded-lg shadow-md hover:bg-gray-950 disabled:bg-gray-400 disabled:cursor-not-allowed relative"
+             :disabled="!$wire.selectedCurrency || loading"
+         >
+             <span x-show="loading" class="absolute inset-0 flex items-center justify-center">
+                 <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                 </svg>
+             </span>
+             <span x-show="!loading">
+                 {{ __('Create Wallet') }}
+             </span>
+         </button>
+         
+
             </form>
         @else
             <div class="mb-4 mt-5 text-green-500">

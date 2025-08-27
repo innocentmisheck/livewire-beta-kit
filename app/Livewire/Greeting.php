@@ -34,16 +34,13 @@ class Greeting extends Component
                 if (!empty($currencies)) {
                     return collect($currencies)->pluck('code')->toArray();
                 }
-
                 // Fallback to basic symbols if API fails
-                return ['BTC', 'ETH', 'LTC', 'XRP', 'ADA'];
+                return [];
             });
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             \Log::error('Failed to fetch crypto symbols: ' . $e->getMessage());
-            $this->cryptoSymbols = ['BTC', 'ETH', 'LTC', 'XRP', 'ADA']; // Fallback
         } catch (\Exception $e) {
             \Log::error('Unexpected error while fetching crypto symbols: ' . $e->getMessage());
-            $this->cryptoSymbols = ['BTC', 'ETH', 'LTC', 'XRP', 'ADA']; // Fallback
         }
     }
 
